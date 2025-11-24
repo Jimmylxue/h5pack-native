@@ -7,5 +7,29 @@
   </head>
   <body>
     <h1>hello h5pack</h1>
+    <button onclick="checkPermission()">查看权限</button>
+    <button onclick="requestCameraPermission()">申请相机权限</button>
+    <script src="./vconsole.js"></script>
+
+    <script>
+      new VConsole();
+    </script>
+
+    <script src="./h5PackBridge.min.js"></script>
+
+    <script>
+      function checkPermission() {
+        h5packBridge.camera.checkPermission().then(res => {
+          console.log('res', res);
+          alert(`权限结果：${res ? '有' : '无'}`);
+        });
+      }
+
+      function requestCameraPermission() {
+        h5packBridge.camera.requestPermission().then(res => {
+          console.log('申请res', res);
+        });
+      }
+    </script>
   </body>
 </html>

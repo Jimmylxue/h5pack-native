@@ -2,6 +2,15 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 相机权限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- optionally, if you want to record audio: -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    
+    <!-- 如果需要保存照片到相册，还需要以下权限 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
       android:name=".MainApplication"
       android:label="@string/APP_NAME"

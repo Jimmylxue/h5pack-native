@@ -6,18 +6,12 @@
  */
 
 import React, {useEffect} from 'react';
-import {
-  SafeAreaView,
-  StatusBar,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {SafeAreaView, StatusBar, useColorScheme, View} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {StaticWebView} from './src/components/WebView/StaticWebView';
-import Config from 'react-native-config';
 import BootSplash from 'react-native-bootsplash';
+import {RootNavigator} from './src/navigation/RootNavigator';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -36,13 +30,7 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <View
-        style={{
-          width: '100%',
-          height: '100%',
-        }}>
-        <StaticWebView url="dist/index.html" />
-      </View>
+      <RootNavigator />
     </SafeAreaView>
   );
 }
