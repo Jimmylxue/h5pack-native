@@ -16,7 +16,13 @@
     <button onclick="requestCameraPermission()">申请相机权限</button>
     <button onclick="openCamera()">跳转相机</button>
     <button onclick="chooseImage()">打开相册</button>
+
     <img id="cameraPreview" alt="" />
+
+    <div>
+      <button onclick="getCurrentPosition()">查看当前位置</button>
+      <div id="position"></div>
+    </div>
     <script src="./vconsole.js"></script>
 
     <script>
@@ -50,6 +56,13 @@
         h5packBridge.camera.chooseImage().then(res => {
           console.log('拍照res', res);
           document.getElementById('cameraPreview').src = res[1]?.base64;
+        });
+      }
+
+      function getCurrentPosition() {
+        h5packBridge.location.getCurrentPosition().then(res => {
+          console.log('地址res', res);
+          document.getElementById('position').textContent = JSON.stringify(res);
         });
       }
     </script>
