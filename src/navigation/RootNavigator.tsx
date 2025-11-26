@@ -1,6 +1,7 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Main} from './Main';
+import {CameraScreen} from './Camera';
 
 type TRootStackParams = {
   Auth: undefined;
@@ -32,7 +33,7 @@ export const RootNavigator = () => {
       />
       <RootStack.Screen
         name="Camera"
-        component={Main}
+        component={CameraScreen}
         options={{headerShown: false}}
       />
     </RootStack.Navigator>

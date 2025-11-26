@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>hello h5pack</title>
   </head>
+  <style>
+    #cameraPreview {
+      width: 100px;
+    }
+  </style>
   <body>
     <h1>hello h5pack</h1>
     <button onclick="checkPermission()">查看权限</button>
     <button onclick="requestCameraPermission()">申请相机权限</button>
+    <button onclick="openCamera()">跳转相机</button>
+    <button onclick="chooseImage()">打开相册</button>
+    <img id="cameraPreview" alt="" />
     <script src="./vconsole.js"></script>
 
     <script>
@@ -28,6 +36,20 @@
       function requestCameraPermission() {
         h5packBridge.camera.requestPermission().then(res => {
           console.log('申请res', res);
+        });
+      }
+
+      function openCamera() {
+        h5packBridge.camera.open().then(res => {
+          console.log('拍照res', res);
+          document.getElementById('cameraPreview').src = res?.base64;
+        });
+      }
+
+      function chooseImage() {
+        h5packBridge.camera.chooseImage().then(res => {
+          console.log('拍照res', res);
+          document.getElementById('cameraPreview').src = res[1]?.base64;
         });
       }
     </script>

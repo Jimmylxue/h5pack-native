@@ -6,18 +6,20 @@
  */
 
 import React, {useEffect} from 'react';
-import {SafeAreaView, StatusBar, useColorScheme, View} from 'react-native';
+import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {StaticWebView} from './src/components/WebView/StaticWebView';
 import BootSplash from 'react-native-bootsplash';
 import {RootNavigator} from './src/navigation/RootNavigator';
+import {NavigationContainer as RNNavigationContainer} from '@react-navigation/native';
+import {navigationRef} from './src/navigation/navigate';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    flex: 1,
   };
 
   useEffect(() => {
@@ -30,7 +32,9 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <RootNavigator />
+      <RNNavigationContainer ref={navigationRef}>
+        <RootNavigator />
+      </RNNavigationContainer>
     </SafeAreaView>
   );
 }

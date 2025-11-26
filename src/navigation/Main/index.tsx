@@ -1,4 +1,4 @@
-import React, {View} from 'react-native';
+import React, {Text, View} from 'react-native';
 import {StaticWebView} from '../../components/WebView/StaticWebView';
 
 export function Main() {

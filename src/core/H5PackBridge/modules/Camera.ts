@@ -1,5 +1,12 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 import {H5PackNativeBridge} from '..';
+import {
+  CameraOptions,
+  launchCamera,
+  launchImageLibrary,
+  OptionsCommon,
+} from 'react-native-image-picker';
+import RNFS from 'react-native-fs';
 
 export class CameraModule {
   constructor(private bridge: H5PackNativeBridge) {}
@@ -8,6 +15,8 @@ export class CameraModule {
     switch (action) {
       case 'open':
         return await this.open(params);
+      case 'chooseImage':
+        return await this.chooseImage(params);
       case 'checkPermission':
         return await this.checkPermission();
       case 'requestPermission':
@@ -18,30 +27,45 @@ export class CameraModule {
   }
 
   // 打开相机
-  async open(options = {}) {
-    // try {
-    //   // // 检查权限
-    //   await this.ensureCameraPermission();
-    //   return new Promise((resolve, reject) => {
-    //     launchCamera(
-    //       {
-    //         mediaType: options.mediaType || 'photo',
-    //         maxWidth: options.maxWidth || 1920,
-    //         maxHeight: options.maxHeight || 1080,
-    //         quality: options.quality === 'high' ? 1 : 0.7,
-    //         includeBase64: options.includeBase64 !== false,
-    //         saveToPhotos: options.saveToPhotos || false,
-    //         cameraType: options.cameraType || 'back',
-    //         durationLimit: options.durationLimit, // 视频时长限制
-    //       },
-    //       response => {
-    //         this.handleCameraResponse(response, resolve, reject);
-    //       },
-    //     );
-    //   });
-    // } catch (error) {
-    //   throw this.wrapError(error, 'CAMERA_ERROR');
-    // }
+  async open(options: CameraOptions) {
+    try {
+      // // 检查权限
+      await this.ensureCameraPermission();
+      return new Promise(async resolve => {
+        const result = await launchCamera(options);
+        const filePath = result?.assets?.[0]?.uri!;
+        const base64 = await this.filePathToBase64(filePath);
+        resolve({...result?.assets?.[0], base64});
+      });
+    } catch (error) {
+      throw this.wrapError(error, 'CAMERA_ERROR');
+    }
+  }
+
+  async chooseImage(params: OptionsCommon) {
+    return new Promise((resolve, reject) => {
+      launchImageLibrary(params, async response => {
+        if (response.didCancel) {
+          reject(new Error('用户取消了选择'));
+        } else if (response.errorCode) {
+          reject(new Error(`选择失败: ${response.errorMessage}`));
+        } else if (response.assets && response.assets.length > 0) {
+          try {
+            const processedImages = [];
+            for (const image of response.assets) {
+              const result = await this.processImage(image, params);
+              processedImages.push(result);
+            }
+            console.log('processedImages', processedImages);
+            resolve(processedImages);
+          } catch (error) {
+            reject(error);
+          }
+        } else {
+          reject(new Error('没有选择图片'));
+        }
+      });
+    });
   }
 
   async checkPermission() {
@@ -100,5 +124,35 @@ export class CameraModule {
       code: code,
       originalError: error,
     };
+  }
+
+  // 处理图片数据
+  private async processImage(image: any, params: any) {
+    const {uri, fileName, fileSize, width, height, base64} = image;
+
+    let accessibleUri = uri;
+
+    // 构建返回结果
+    const result: any = {
+      uri: accessibleUri,
+      width,
+      height,
+      fileSize,
+      fileName: fileName || 'image.jpg',
+      base64: await this.filePathToBase64(accessibleUri),
+    };
+
+    // 如果需要 base64
+    if (params?.includeBase64 && base64) {
+      result.base64 = `data:image/jpeg;base64,${base64}`;
+    }
+
+    return result;
+  }
+
+  private async filePathToBase64(filePath: string) {
+    const base64String = await RNFS.readFile(filePath, 'base64');
+    const base64Url = `data:image/jpeg;base64,${base64String}`;
+    return base64Url;
   }
 }
