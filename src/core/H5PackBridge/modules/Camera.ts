@@ -7,6 +7,7 @@ import {
   OptionsCommon,
 } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
+import {navigates} from '../../../navigation/navigate';
 
 export class CameraModule {
   constructor(private bridge: H5PackNativeBridge) {}
@@ -21,15 +22,18 @@ export class CameraModule {
         return await this.checkPermission();
       case 'requestPermission':
         return await this.requestPermission();
+      case 'scan':
+        return await this.scan();
       default:
         throw new Error(`Unknown camera action: ${action}`);
     }
   }
 
-  // 打开相机
+  /**
+   * 打开相机
+   */
   async open(options: CameraOptions) {
     try {
-      // // 检查权限
       await this.ensureCameraPermission();
       return new Promise(async resolve => {
         const result = await launchCamera(options);
@@ -42,6 +46,9 @@ export class CameraModule {
     }
   }
 
+  /**
+   * 打开相册选择图片
+   */
   async chooseImage(params: OptionsCommon) {
     return new Promise((resolve, reject) => {
       launchImageLibrary(params, async response => {
@@ -68,6 +75,9 @@ export class CameraModule {
     });
   }
 
+  /**
+   * 检查是否有相机权限
+   */
   async checkPermission() {
     try {
       if (Platform.OS === 'android') {
@@ -84,7 +94,9 @@ export class CameraModule {
     }
   }
 
-  // 申请相机权限
+  /**
+   * 申请相机权限
+   */
   async requestPermission() {
     try {
       if (Platform.OS === 'android') {
@@ -103,6 +115,25 @@ export class CameraModule {
       return true;
     } catch (error) {
       throw this.wrapError(error, 'PERMISSION_REQUEST_ERROR');
+    }
+  }
+
+  /**
+   * 扫码
+   */
+  async scan() {
+    try {
+      // // 检查权限
+      await this.ensureCameraPermission();
+      return new Promise(async resolve => {
+        navigates('Scan', {
+          onSuccess(res) {
+            resolve(res);
+          },
+        });
+      });
+    } catch (error) {
+      throw this.wrapError(error, 'CAMERA_ERROR');
     }
   }
 

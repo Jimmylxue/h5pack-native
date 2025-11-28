@@ -2,15 +2,13 @@ import {NavigationContainerRef} from '@react-navigation/native';
 import * as React from 'react';
 
 export type TRootStackParams = {
-  Auth: undefined;
   Main: undefined;
-  Painting: undefined;
   Camera: {
     onSuccess: (res: string) => void;
   };
-  Home: undefined;
-  Message: undefined;
-  Mine: undefined;
+  Scan: {
+    onSuccess: (res: string) => void;
+  };
 };
 
 export const navigationRef =

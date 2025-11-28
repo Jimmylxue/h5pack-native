@@ -16,8 +16,11 @@
     <button onclick="requestCameraPermission()">申请相机权限</button>
     <button onclick="openCamera()">跳转相机</button>
     <button onclick="chooseImage()">打开相册</button>
+    <button onclick="scan()">扫码</button>
 
     <img id="cameraPreview" alt="" />
+
+    <div>扫码结果：<span id="scanRes"></span></div>
 
     <div>
       <button onclick="getCurrentPosition()">查看当前位置</button>
@@ -59,6 +62,12 @@
         });
       }
 
+      function scan() {
+        h5packBridge.camera.scan().then(res => {
+          document.getElementById('scanRes').textContent = res;
+        });
+      }
+
       function getCurrentPosition() {
         h5packBridge.location.getCurrentPosition().then(res => {
           console.log('地址res', res);
@@ -66,5 +75,7 @@
         });
       }
     </script>
+
+    <video src="" autoplay></video>
   </body>
 </html>
