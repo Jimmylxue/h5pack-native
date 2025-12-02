@@ -1,6 +1,7 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {WebView as SnowWebView} from 'react-native-webview';
 import {H5PackNativeBridge} from '../../core/H5PackBridge';
+import {BackHandler} from 'react-native';
 
 export function StaticWebView(props: {
   url: string;
@@ -11,9 +12,33 @@ export function StaticWebView(props: {
 }) {
   const {url} = props;
 
+  const canBackRef = useRef(false);
+
   const webViewRef = useRef<SnowWebView | null>(null);
 
   const nativeBridge = useRef<H5PackNativeBridge | null>(null);
+
+  useEffect(() => {
+    const handleBackButtonPress = () => {
+      try {
+        if (canBackRef.current) {
+          webViewRef.current?.goBack();
+        }
+        return canBackRef.current;
+      } catch (err) {
+        console.log('[handleBackButtonPress] Error : ', err);
+      }
+    };
+
+    BackHandler.addEventListener('hardwareBackPress', handleBackButtonPress);
+
+    return () => {
+      BackHandler.removeEventListener(
+        'hardwareBackPress',
+        handleBackButtonPress,
+      );
+    };
+  }, []);
 
   return (
     <SnowWebView
@@ -34,6 +59,9 @@ export function StaticWebView(props: {
       }}
       onMessage={event => {
         nativeBridge.current?.handleMessage(event);
+      }}
+      onNavigationStateChange={event => {
+        canBackRef.current = event.canGoBack;
       }}
     />
   );
