@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "release": "cd ./android && ./gradlew assembleRelease"
+    "release": "cd ./android && ./gradlew assembleRelease",
+    "release:aab": "cd ./android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "@react-native-community/geolocation": "^3.4.0",
