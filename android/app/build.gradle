@@ -90,6 +90,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            println "=== 开始配置 release signing ==="
+            if (project.hasProperty('H5PACK_APP_KEY_STORE_FILE')) {
+                println "H5PACK_APP_KEY_STORE_FILE = ${H5PACK_APP_KEY_STORE_FILE}"
+                println "H5PACK_APP_KEY_STORE_PASSWORD = ${H5PACK_APP_KEY_STORE_PASSWORD}"
+                println "H5PACK_APP_KEY_ALIAS = ${H5PACK_APP_KEY_ALIAS}"
+                println "H5PACK_APP_KEY_PASSWORD = ${H5PACK_APP_KEY_PASSWORD}"
+                storeFile file(H5PACK_APP_KEY_STORE_FILE)
+                storePassword H5PACK_APP_KEY_STORE_PASSWORD
+                keyAlias H5PACK_APP_KEY_ALIAS
+                keyPassword H5PACK_APP_KEY_PASSWORD
+            }
+        }
     }
     buildTypes {
         debug {
@@ -101,7 +114,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             ndk {
