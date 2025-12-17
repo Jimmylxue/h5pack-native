@@ -80,8 +80,8 @@ android {
         applicationId "com.h5packnative"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode project.env.get("APP_ANDROID_VERSION_CODE").toInteger()
+        versionName project.env.get("APP_ANDROID_VERSION")
     }
     signingConfigs {
         debug {
