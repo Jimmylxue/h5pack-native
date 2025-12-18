@@ -77,7 +77,7 @@ android {
 
     namespace "com.h5packnative"
     defaultConfig {
-        applicationId "com.h5packnative"
+        applicationId project.env.get("APP_PACKAGE_NAME")
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode project.env.get("APP_ANDROID_VERSION_CODE").toInteger()
