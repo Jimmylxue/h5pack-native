@@ -1,4 +1,4 @@
-import React, {Text, View} from 'react-native';
+import React, {View} from 'react-native';
 import {StaticWebView} from '../../components/WebView/StaticWebView';
 
 export function Main() {
@@ -8,7 +8,7 @@ export function Main() {
         width: '100%',
         height: '100%',
       }}>
-      <StaticWebView url="dist/index.html" />
+      <StaticWebView url="dist/" />
     </View>
   );
 }

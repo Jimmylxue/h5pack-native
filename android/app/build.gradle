@@ -82,6 +82,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode project.env.get("APP_ANDROID_VERSION_CODE").toInteger()
         versionName project.env.get("APP_ANDROID_VERSION")
+        resValue "string", "build_config_package", "com.h5packnative"
     }
     signingConfigs {
         debug {
