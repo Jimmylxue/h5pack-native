@@ -12,6 +12,8 @@
   </style>
   <body>
     <h1>hello h5pack</h1>
+
+    <h3>相机模块</h3>
     <button onclick="checkPermission()">查看权限</button>
     <button onclick="requestCameraPermission()">申请相机权限</button>
     <button onclick="openCamera()">跳转相机</button>
@@ -22,10 +24,23 @@
 
     <div>扫码结果：<span id="scanRes"></span></div>
 
+    <h3>位置模块</h3>
     <div>
       <button onclick="getCurrentPosition()">查看当前位置</button>
       <div id="position"></div>
     </div>
+
+    <h3>录音模块</h3>
+    <div>
+      <button onclick="startRecordAudio()">开始录音</button>
+      <button onclick="stopRecordAudio()">停止录音</button>
+      <button onclick="cancelRecordAudio()">取消录音</button>
+      <button onclick="restartRecordAudio()">重新录音</button>
+      <div id="recordAudioStartRes"></div>
+      <div id="recordAudioStopRes"></div>
+      <div id="recordAudioCancelRes"></div>
+    </div>
+
     <script src="./vconsole.js"></script>
 
     <script>
@@ -72,6 +87,39 @@
         h5packBridge.location.getCurrentPosition().then(res => {
           console.log('地址res', res);
           document.getElementById('position').textContent = JSON.stringify(res);
+        });
+      }
+
+      function startRecordAudio() {
+        h5packBridge.recordAudio.start().then(res => {
+          console.log('开始录音res', res);
+          document.getElementById(
+            'recordAudioStartRes',
+          ).textContent = `录音暂存路径：${res}`;
+        });
+      }
+
+      function stopRecordAudio() {
+        h5packBridge.recordAudio.stop().then(res => {
+          console.log('停止录音res', res);
+          document.getElementById(
+            'recordAudioStopRes',
+          ).textContent = `录音完成结果：${JSON.stringify(res)}`;
+        });
+      }
+
+      function cancelRecordAudio() {
+        h5packBridge.recordAudio.cancel().then(res => {
+          console.log('取消录音res', res);
+        });
+      }
+
+      function restartRecordAudio() {
+        h5packBridge.recordAudio.restart().then(res => {
+          console.log('重新录音res', res);
+          document.getElementById(
+            'recordAudioCancelRes',
+          ).textContent = `重新录音结果：${JSON.stringify(res)}`;
         });
       }
     </script>
