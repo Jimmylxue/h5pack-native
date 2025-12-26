@@ -2,6 +2,7 @@ import WebView, {WebViewMessageEvent} from 'react-native-webview';
 import {CameraModule} from './modules/Camera';
 import {LocationModule} from './modules/Location';
 import {RecordAudioModule} from './modules/RecordAudio';
+import {AppModule} from './modules/App';
 
 export class H5PackNativeBridge {
   handlers: Record<string, any> = {};
@@ -17,6 +18,7 @@ export class H5PackNativeBridge {
     this.modules.camera = new CameraModule(this);
     this.modules.location = new LocationModule(this);
     this.modules.recordAudio = new RecordAudioModule(this);
+    this.modules.app = new AppModule();
 
     // 设置处理器
     this.handlers = {
@@ -26,6 +28,8 @@ export class H5PackNativeBridge {
         this.modules.location.handle(action, params),
       recordAudio: (action: string, params: any) =>
         this.modules.recordAudio.handle(action, params),
+      app: (action: string, params: any) =>
+        this.modules.app.handle(action, params),
     };
   }
 

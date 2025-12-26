@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {WebView as SnowWebView} from 'react-native-webview';
 import {H5PackNativeBridge} from '../../core/H5PackBridge';
-import {BackHandler} from 'react-native';
+import {BackHandler, DeviceEventEmitter} from 'react-native';
 import RNFS from 'react-native-fs';
 // 使用 react-native-config 来获取环境变量
 
@@ -58,6 +58,19 @@ export function StaticWebView({
         'hardwareBackPress',
         handleBackButtonPress,
       );
+    };
+  }, []);
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('APP_REFRESH', () => {
+      try {
+        webViewRef.current?.reload();
+      } catch (e) {
+        console.log('[StaticWebView] reload error', e);
+      }
+    });
+    return () => {
+      sub.remove();
     };
   }, []);
 

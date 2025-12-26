@@ -41,6 +41,13 @@
       <div id="recordAudioCancelRes"></div>
     </div>
 
+    <h3>APP模块</h3>
+    <div>
+      <button onclick="exitApp()">退出APP</button>
+      <button onclick="relaunchApp()">重新打开APP</button>
+      <button onclick="refreshApp()">刷新APP</button>
+    </div>
+
     <script src="./vconsole.js"></script>
 
     <script>
@@ -121,6 +128,38 @@
             'recordAudioCancelRes',
           ).textContent = `重新录音结果：${JSON.stringify(res)}`;
         });
+      }
+
+      function exitApp() {
+        h5packBridge.app
+          .exit({
+            confirm: true,
+            title: '退出APP',
+          })
+          .then(res => {
+            console.log('退出APPres', res);
+          });
+      }
+
+      function relaunchApp() {
+        h5packBridge.app
+          .relaunch({
+            confirm: true,
+          })
+          .then(res => {
+            console.log('重新打开APPres', res);
+          });
+      }
+
+      function refreshApp() {
+        h5packBridge.app
+          .refresh({
+            confirm: true,
+            title: '刷新APP',
+          })
+          .then(res => {
+            console.log('刷新APPres', res);
+          });
       }
     </script>
 
