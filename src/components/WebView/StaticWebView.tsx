@@ -3,6 +3,7 @@ import {WebView as SnowWebView} from 'react-native-webview';
 import {H5PackNativeBridge} from '../../core/H5PackBridge';
 import {BackHandler, DeviceEventEmitter} from 'react-native';
 import RNFS from 'react-native-fs';
+import Config from 'react-native-config';
 // 使用 react-native-config 来获取环境变量
 
 export function StaticWebView({
@@ -81,8 +82,13 @@ export function StaticWebView({
         .replace(/url\(["']?\/(assets\/[^"')]+)["']?\)/g, 'url("$1")');
     const load = async () => {
       try {
-        let content = '';
-        content = await RNFS.readFileAssets(`webview/${entry}`, 'utf8');
+        const devEnabled =
+          String(Config.APP_WEBVIEW_DEV_ENABLED || '').toLowerCase() === 'true';
+        if (devEnabled) {
+          setHtml(null);
+          return;
+        }
+        const content = await RNFS.readFileAssets(`webview/${entry}`, 'utf8');
         setHtml(rewriteToRelative(content));
       } catch (e) {
         console.log('[StaticWebView] load html error: ', e);
@@ -93,7 +99,33 @@ export function StaticWebView({
     return;
   }, [entry]);
 
-  return (
+  const devEnabled =
+    String(Config.APP_WEBVIEW_DEV_ENABLED || '').toLowerCase() === 'true';
+  const devPort = parseInt(String(Config.APP_WEBVIEW_DEV_PORT || '9999'), 10);
+  const devHost = 'localhost';
+  const devUrl = `http://${devHost}:${devPort}/`;
+
+  return devEnabled ? (
+    <SnowWebView
+      ref={webViewRef}
+      originWhitelist={['*']}
+      scalesPageToFit={false}
+      javaScriptEnabled
+      source={{uri: devUrl}}
+      mixedContentMode={'compatibility'}
+      allowUniversalAccessFromFileURLs={true}
+      mediaPlaybackRequiresUserAction={false}
+      onLoadEnd={() => {
+        nativeBridge.current = new H5PackNativeBridge(webViewRef.current!);
+      }}
+      onMessage={event => {
+        nativeBridge.current?.handleMessage(event);
+      }}
+      onNavigationStateChange={event => {
+        canBackRef.current = event.canGoBack;
+      }}
+    />
+  ) : (
     html && (
       <SnowWebView
         ref={webViewRef}

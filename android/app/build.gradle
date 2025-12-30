@@ -129,6 +129,11 @@ android {
             assets.srcDirs = ['src/main/assets', '../../public']
         }
     } 
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
 }
 
 dependencies {
