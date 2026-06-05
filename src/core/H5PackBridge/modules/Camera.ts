@@ -22,6 +22,10 @@ export class CameraModule {
         return await this.checkPermission();
       case 'requestPermission':
         return await this.requestPermission();
+      case 'checkPhotoLibraryPermission':
+        return await this.checkPhotoLibraryPermission();
+      case 'requestPhotoLibraryPermission':
+        return await this.requestPhotoLibraryPermission();
       case 'scan':
         return await this.scan();
       default:
