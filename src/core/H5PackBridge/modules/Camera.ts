@@ -47,9 +47,73 @@ export class CameraModule {
   }
 
   /**
+   * 检查是否有相册权限
+   */
+  async checkPhotoLibraryPermission() {
+    try {
+      if (Platform.OS === 'android') {
+        const permission =
+          Platform.Version >= 33
+            ? 'android.permission.READ_MEDIA_IMAGES'
+            : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        const granted = await PermissionsAndroid.check(permission);
+        return granted;
+      }
+      // iOS 由 launchImageLibrary 内部处理
+      return true;
+    } catch (error) {
+      throw this.wrapError(error, 'PERMISSION_CHECK_ERROR');
+    }
+  }
+
+  /**
+   * 申请相册权限
+   */
+  async requestPhotoLibraryPermission() {
+    try {
+      if (Platform.OS === 'android') {
+        const permission =
+          Platform.Version >= 33
+            ? 'android.permission.READ_MEDIA_IMAGES'
+            : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        const granted = await PermissionsAndroid.request(permission, {
+          title: '相册权限申请',
+          message: '应用需要访问您的相册以选择图片',
+          buttonPositive: '同意',
+          buttonNegative: '拒绝',
+        });
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+      // iOS 由 launchImageLibrary 内部处理
+      return true;
+    } catch (error) {
+      throw this.wrapError(error, 'PERMISSION_REQUEST_ERROR');
+    }
+  }
+
+  /**
+   * 确保有相册权限
+   */
+  async ensurePhotoLibraryPermission() {
+    const hasPermission = await this.checkPhotoLibraryPermission();
+    if (!hasPermission) {
+      const granted = await this.requestPhotoLibraryPermission();
+      if (!granted) {
+        throw new Error('Photo library permission denied');
+      }
+    }
+    return true;
+  }
+
+  /**
    * 打开相册选择图片
    */
   async chooseImage(params: OptionsCommon) {
+    try {
+      await this.ensurePhotoLibraryPermission();
+    } catch (error) {
+      throw this.wrapError(error, 'CAMERA_ERROR');
+    }
     return new Promise((resolve, reject) => {
       launchImageLibrary(params, async response => {
         if (response.didCancel) {

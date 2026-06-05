@@ -30,8 +30,14 @@ export class LocationModule {
               options,
             );
           },
-          () => {
+          error => {
             console.log('权限请求失败');
+            reject(
+              this.wrapError(
+                new Error('Location permission denied'),
+                'LOCATION_ERROR',
+              ),
+            );
           },
         );
       } catch (error) {
