@@ -40,11 +40,19 @@ export class LocationModule {
     });
   }
 
-  wrapError(error: any, code: any) {
+  wrapError(error: any, code: string, details?: Record<string, any>) {
+    let message: string;
+    if (error?.message) {
+      message = error.message;
+    } else if (typeof error === 'object') {
+      message = JSON.stringify(error);
+    } else {
+      message = String(error);
+    }
     return {
-      message: error.message,
-      code: code,
-      originalError: error,
+      message,
+      code,
+      ...(details ? {details} : {}),
     };
   }
 }

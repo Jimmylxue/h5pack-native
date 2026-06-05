@@ -69,16 +69,30 @@ export class H5PackNativeBridge {
 
   // 发送错误响应
   sendError(callId: string, error: any, code = 'UNKNOWN_ERROR') {
-    const message = {
+    let message: string;
+    if (typeof error === 'string') {
+      message = error;
+    } else if (error?.message) {
+      message = error.message;
+    } else if (typeof error === 'object') {
+      message = JSON.stringify(error);
+    } else {
+      message = String(error);
+    }
+    const errorCode = error?.code || code;
+    const details = error?.details || undefined;
+
+    const msg = {
       type: 'bridge_response',
       callId,
       success: false,
       error: {
-        message: error,
-        code: code,
+        message,
+        code: errorCode,
+        ...(details ? {details} : {}),
         timestamp: Date.now(),
       },
     };
-    this.webViewRef.postMessage(JSON.stringify(message));
+    this.webViewRef.postMessage(JSON.stringify(msg));
   }
 }
