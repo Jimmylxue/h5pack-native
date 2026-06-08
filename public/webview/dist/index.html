@@ -26,8 +26,13 @@
 
     <h3>位置模块</h3>
     <div>
-      <button onclick="getCurrentPosition()">查看当前位置</button>
-      <div id="position"></div>
+      <button onclick="checkLocationPermission()">检查定位权限</button>
+      <button onclick="requestLocationPermission()">申请定位权限</button>
+      <button onclick="checkLocationEnabled()">检查定位服务</button>
+      <button onclick="getCurrentPosition()">获取当前位置</button>
+      <button onclick="openLocationSettings()">打开定位设置</button>
+      <button onclick="openAppSettings()">打开应用设置</button>
+      <div id="position" style="margin-top:8px;word-break:break-all;"></div>
     </div>
 
     <h3>录音模块</h3>
@@ -90,11 +95,52 @@
         });
       }
 
+      function checkLocationPermission() {
+        h5packBridge.location.checkPermission().then(granted => {
+          console.log('定位权限', granted);
+          alert(`定位权限：${granted ? '已授权' : '未授权'}`);
+        });
+      }
+
+      function requestLocationPermission() {
+        h5packBridge.location.requestPermission().then(res => {
+          console.log('申请定位权限', res);
+          alert(`结果：${JSON.stringify(res)}`);
+        });
+      }
+
+      function checkLocationEnabled() {
+        h5packBridge.location.checkLocationEnabled().then(enabled => {
+          console.log('定位服务', enabled);
+          alert(`定位服务：${enabled ? '已开启' : '未开启'}`);
+        });
+      }
+
       function getCurrentPosition() {
         h5packBridge.location.getCurrentPosition().then(res => {
           console.log('地址res', res);
           document.getElementById('position').textContent = JSON.stringify(res);
+        }).catch(err => {
+          console.error('定位失败', err);
+          document.getElementById('position').textContent = `错误：${err.code} - ${err.message}`;
+          if (err.code === 'LOCATION_PERMISSION_NEVER_ASK_AGAIN') {
+            if (confirm('定位权限被永久拒绝，是否打开应用设置页？')) {
+              h5packBridge.location.openAppSettings();
+            }
+          } else if (err.code === 'LOCATION_SERVICES_DISABLED') {
+            if (confirm('定位服务未开启，是否打开定位设置？')) {
+              h5packBridge.location.openLocationSettings();
+            }
+          }
         });
+      }
+
+      function openLocationSettings() {
+        h5packBridge.location.openLocationSettings();
+      }
+
+      function openAppSettings() {
+        h5packBridge.location.openAppSettings();
       }
 
       function startRecordAudio() {
