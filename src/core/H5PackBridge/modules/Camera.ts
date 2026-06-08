@@ -63,8 +63,7 @@ export class CameraModule {
         const granted = await PermissionsAndroid.check(permission);
         return granted;
       }
-      // iOS 由 launchImageLibrary 内部处理
-      return true;
+      throw new Error('Photo library permission is not supported on iOS yet');
     } catch (error) {
       throw this.wrapError(error, 'PERMISSION_CHECK_ERROR');
     }
@@ -88,8 +87,7 @@ export class CameraModule {
         });
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-      // iOS 由 launchImageLibrary 内部处理
-      return true;
+      throw new Error('Photo library permission is not supported on iOS yet');
     } catch (error) {
       throw this.wrapError(error, 'PERMISSION_REQUEST_ERROR');
     }
@@ -154,8 +152,7 @@ export class CameraModule {
         );
         return granted;
       }
-      // iOS 处理 - 需要额外的权限检查逻辑
-      return true;
+      throw new Error('Camera permission check is not supported on iOS yet');
     } catch (error) {
       console.log('error');
       throw this.wrapError(error, 'PERMISSION_CHECK_ERROR');
@@ -179,8 +176,7 @@ export class CameraModule {
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-      // iOS 处理
-      return true;
+      throw new Error('Camera permission request is not supported on iOS yet');
     } catch (error) {
       throw this.wrapError(error, 'PERMISSION_REQUEST_ERROR');
     }

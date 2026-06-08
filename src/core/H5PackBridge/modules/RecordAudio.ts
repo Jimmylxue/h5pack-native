@@ -91,8 +91,7 @@ export class RecordAudioModule {
         );
         return granted;
       }
-      // iOS 处理 - 需要额外的权限检查逻辑
-      return true;
+      throw new Error('Record audio permission check is not supported on iOS yet');
     } catch (error) {
       console.log('error');
       throw this.wrapError(error, 'PERMISSION_CHECK_ERROR');
@@ -116,8 +115,7 @@ export class RecordAudioModule {
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-      // iOS 处理
-      return true;
+      throw new Error('Record audio permission request is not supported on iOS yet');
     } catch (error) {
       throw this.wrapError(error, 'PERMISSION_REQUEST_ERROR');
     }
