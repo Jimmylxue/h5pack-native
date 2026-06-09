@@ -20,6 +20,9 @@ import {setBridgeLogEnabled} from './src/core/H5PackBridge/logger';
 const devMode =
   String(Config.APP_WEBVIEW_DEV_ENABLED || '').toLowerCase() === 'true';
 
+const debugPanelEnabled =
+  String(Config.APP_BRIDGE_DEBUG_PANEL_ENABLED || '').toLowerCase() === 'true';
+
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -29,8 +32,8 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    // 开发环境自动启用 Bridge 日志
-    if (devMode) {
+    // 调试面板开启时自动启用 Bridge 日志
+    if (debugPanelEnabled) {
       setBridgeLogEnabled(true);
     }
 
@@ -59,7 +62,7 @@ function App(): React.JSX.Element {
       <RNNavigationContainer ref={navigationRef}>
         <RootNavigator />
       </RNNavigationContainer>
-      {devMode && <BridgeDebugPanel />}
+      {debugPanelEnabled && <BridgeDebugPanel />}
     </SafeAreaView>
   );
 }
