@@ -8,6 +8,9 @@ import {
 } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 import {navigates} from '../../../navigation/navigate';
+import {openAppSettings} from '../../../native/LocationSettings';
+
+type PermissionStatus = 'granted' | 'denied' | 'never_ask_again';
 
 export class CameraModule {
   constructor(private bridge: H5PackNativeBridge) {}
@@ -28,6 +31,8 @@ export class CameraModule {
         return await this.requestPhotoLibraryPermission();
       case 'scan':
         return await this.scan();
+      case 'openAppSettings':
+        return this.openAppSettingsAction();
       default:
         throw new Error(`Unknown camera action: ${action}`);
     }
@@ -72,21 +77,30 @@ export class CameraModule {
 
   /**
    * 申请相册权限
+   * 返回 { granted, status } 以区分三种状态
    */
-  async requestPhotoLibraryPermission() {
+  async requestPhotoLibraryPermission(): Promise<{granted: boolean; status: PermissionStatus}> {
     try {
       if (Platform.OS === 'android') {
         const permission =
           Platform.Version >= 33
             ? 'android.permission.READ_MEDIA_IMAGES'
             : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-        const granted = await PermissionsAndroid.request(permission, {
+        const result = await PermissionsAndroid.request(permission, {
           title: '相册权限申请',
           message: '应用需要访问您的相册以选择图片',
           buttonPositive: '同意',
           buttonNegative: '拒绝',
         });
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
+
+        switch (result) {
+          case PermissionsAndroid.RESULTS.GRANTED:
+            return {granted: true, status: 'granted'};
+          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+            return {granted: false, status: 'never_ask_again'};
+          default:
+            return {granted: false, status: 'denied'};
+        }
       }
       throw new Error('Photo library permission is not supported on iOS yet');
     } catch (error) {
@@ -100,9 +114,18 @@ export class CameraModule {
   async ensurePhotoLibraryPermission() {
     const hasPermission = await this.checkPhotoLibraryPermission();
     if (!hasPermission) {
-      const granted = await this.requestPhotoLibraryPermission();
+      const {granted, status} = await this.requestPhotoLibraryPermission();
       if (!granted) {
-        throw new Error('Photo library permission denied');
+        if (status === 'never_ask_again') {
+          throw this.wrapError(
+            new Error('相册权限被永久拒绝，请前往设置页手动开启'),
+            'PHOTO_LIBRARY_PERMISSION_NEVER_ASK_AGAIN',
+          );
+        }
+        throw this.wrapError(
+          new Error('相册权限被拒绝'),
+          'PHOTO_LIBRARY_PERMISSION_DENIED',
+        );
       }
     }
     return true;
@@ -115,6 +138,10 @@ export class CameraModule {
     try {
       await this.ensurePhotoLibraryPermission();
     } catch (error) {
+      // 如果已经是结构化错误（含 code），直接抛出
+      if (error?.code) {
+        throw error;
+      }
       throw this.wrapError(error, 'CAMERA_ERROR');
     }
     return new Promise((resolve, reject) => {
@@ -162,11 +189,12 @@ export class CameraModule {
 
   /**
    * 申请相机权限
+   * 返回 { granted, status } 以区分三种状态
    */
-  async requestPermission() {
+  async requestPermission(): Promise<{granted: boolean; status: PermissionStatus}> {
     try {
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
+        const result = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.CAMERA,
           {
             title: '相机权限申请',
@@ -175,7 +203,15 @@ export class CameraModule {
             buttonNegative: '拒绝',
           },
         );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
+
+        switch (result) {
+          case PermissionsAndroid.RESULTS.GRANTED:
+            return {granted: true, status: 'granted'};
+          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+            return {granted: false, status: 'never_ask_again'};
+          default:
+            return {granted: false, status: 'denied'};
+        }
       }
       throw new Error('Camera permission request is not supported on iOS yet');
     } catch (error) {
@@ -206,12 +242,28 @@ export class CameraModule {
   async ensureCameraPermission() {
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      const granted = await this.requestPermission();
+      const {granted, status} = await this.requestPermission();
       if (!granted) {
-        throw new Error('Camera permission denied');
+        if (status === 'never_ask_again') {
+          throw this.wrapError(
+            new Error('相机权限被永久拒绝，请前往设置页手动开启'),
+            'CAMERA_PERMISSION_NEVER_ASK_AGAIN',
+          );
+        }
+        throw this.wrapError(
+          new Error('相机权限被拒绝'),
+          'CAMERA_PERMISSION_DENIED',
+        );
       }
     }
     return true;
+  }
+
+  /**
+   * 跳转应用详情设置页（用于"不再询问"后引导用户手动开启权限）
+   */
+  openAppSettingsAction(): void {
+    openAppSettings();
   }
 
   wrapError(error: any, code: string, details?: Record<string, any>) {

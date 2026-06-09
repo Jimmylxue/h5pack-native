@@ -1,6 +1,9 @@
 import {NativeModules, PermissionsAndroid, Platform} from 'react-native';
 import {H5PackNativeBridge} from '..';
+import {openAppSettings} from '../../../native/LocationSettings';
 const {Recording} = NativeModules;
+
+type PermissionStatus = 'granted' | 'denied' | 'never_ask_again';
 
 export type StartOptions = {
   fileName?: string;
@@ -30,6 +33,8 @@ export class RecordAudioModule {
         return await this.checkPermission();
       case 'requestPermission':
         return await this.requestPermission();
+      case 'openAppSettings':
+        return this.openAppSettingsAction();
       default:
         throw new Error(`Unknown record audio action: ${action}`);
     }
@@ -100,11 +105,12 @@ export class RecordAudioModule {
 
   /**
    * 申请录音权限
+   * 返回 { granted, status } 以区分三种状态
    */
-  async requestPermission() {
+  async requestPermission(): Promise<{granted: boolean; status: PermissionStatus}> {
     try {
       if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
+        const result = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
           {
             title: '麦克风权限申请',
@@ -113,7 +119,15 @@ export class RecordAudioModule {
             buttonNegative: '拒绝',
           },
         );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
+
+        switch (result) {
+          case PermissionsAndroid.RESULTS.GRANTED:
+            return {granted: true, status: 'granted'};
+          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+            return {granted: false, status: 'never_ask_again'};
+          default:
+            return {granted: false, status: 'denied'};
+        }
       }
       throw new Error('Record audio permission request is not supported on iOS yet');
     } catch (error) {
@@ -125,12 +139,28 @@ export class RecordAudioModule {
   async ensureRecordAudioPermission() {
     const hasPermission = await this.checkPermission();
     if (!hasPermission) {
-      const granted = await this.requestPermission();
+      const {granted, status} = await this.requestPermission();
       if (!granted) {
-        throw new Error('Record audio permission denied');
+        if (status === 'never_ask_again') {
+          throw this.wrapError(
+            new Error('麦克风权限被永久拒绝，请前往设置页手动开启'),
+            'RECORD_AUDIO_PERMISSION_NEVER_ASK_AGAIN',
+          );
+        }
+        throw this.wrapError(
+          new Error('麦克风权限被拒绝'),
+          'RECORD_AUDIO_PERMISSION_DENIED',
+        );
       }
     }
     return true;
+  }
+
+  /**
+   * 跳转应用详情设置页（用于"不再询问"后引导用户手动开启权限）
+   */
+  openAppSettingsAction(): void {
+    openAppSettings();
   }
 
   wrapError(error: any, code: string, details?: Record<string, any>) {
