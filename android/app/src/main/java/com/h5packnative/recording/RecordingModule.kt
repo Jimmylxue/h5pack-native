@@ -1,5 +1,6 @@
 package com.h5packnative.recording
 
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Environment
@@ -20,6 +21,8 @@ class RecordingModule(private val reactContext: ReactApplicationContext) :
 
   /** 录音器 */
   private var recorder: MediaRecorder? = null
+  /** 播放器 */
+  private var player: MediaPlayer? = null
   /** 输出文件 */
   private var outputFile: File? = null
   /** 开始时间 */
@@ -150,6 +153,86 @@ class RecordingModule(private val reactContext: ReactApplicationContext) :
       Log.e("RecordingModule", "restart error", e)
       promise.reject("E_RESTART_FAILED", e)
     }
+  }
+
+  /** 播放录音文件 */
+  @ReactMethod
+  fun play(path: String, promise: Promise) {
+    try {
+      // 如果正在播放，先停止
+      stopPlayInternal()
+
+      val file = File(path)
+      if (!file.exists()) {
+        promise.reject("E_FILE_NOT_FOUND", "Audio file not found: $path")
+        return
+      }
+
+      val mp = MediaPlayer()
+      player = mp
+
+      mp.setDataSource(path)
+      mp.prepare()
+
+      mp.setOnCompletionListener {
+        sendEvent("playbackComplete", Arguments.createMap().apply {
+          putString("path", path)
+        })
+        stopPlayInternal()
+      }
+
+      mp.setOnErrorListener { _, what, extra ->
+        Log.e("RecordingModule", "MediaPlayer error: what=$what extra=$extra")
+        sendEvent("playbackError", Arguments.createMap().apply {
+          putString("path", path)
+          putInt("what", what)
+          putInt("extra", extra)
+        })
+        stopPlayInternal()
+        true
+      }
+
+      mp.start()
+      sendEvent("playbackStart", Arguments.createMap().apply {
+        putString("path", path)
+        putDouble("durationMs", mp.duration.toDouble())
+      })
+      promise.resolve(Arguments.createMap().apply {
+        putString("path", path)
+        putDouble("durationMs", mp.duration.toDouble())
+      })
+    } catch (e: Exception) {
+      Log.e("RecordingModule", "play error", e)
+      stopPlayInternal()
+      promise.reject("E_PLAY_FAILED", e)
+    }
+  }
+
+  /** 停止播放 */
+  @ReactMethod
+  fun stopPlay(promise: Promise) {
+    try {
+      stopPlayInternal()
+      promise.resolve(null)
+    } catch (e: Exception) {
+      Log.e("RecordingModule", "stopPlay error", e)
+      promise.reject("E_STOP_PLAY_FAILED", e)
+    }
+  }
+
+  /** 内部停止播放 */
+  private fun stopPlayInternal() {
+    val mp = player ?: return
+    try {
+      if (mp.isPlaying) {
+        mp.stop()
+      }
+      mp.reset()
+      mp.release()
+    } catch (_: Exception) {
+    }
+    player = null
+    sendEvent("playbackStop", Arguments.createMap())
   }
 
   private fun cleanupOnError() {

@@ -41,9 +41,10 @@
       <button onclick="stopRecordAudio()">停止录音</button>
       <button onclick="cancelRecordAudio()">取消录音</button>
       <button onclick="restartRecordAudio()">重新录音</button>
-      <div id="recordAudioStartRes"></div>
-      <div id="recordAudioStopRes"></div>
-      <div id="recordAudioCancelRes"></div>
+      <button onclick="playRecordAudio()">▶ 播放</button>
+      <button onclick="stopPlayRecordAudio()">⏹ 停止播放</button>
+      <div id="recordAudioRes"></div>
+      <div id="playbackStatus"></div>
     </div>
 
     <h3>APP模块</h3>
@@ -143,36 +144,54 @@
         h5packBridge.location.openAppSettings();
       }
 
+      var currentRecordPath = '';
+
       function startRecordAudio() {
         h5packBridge.recordAudio.start().then(res => {
           console.log('开始录音res', res);
-          document.getElementById(
-            'recordAudioStartRes',
-          ).textContent = `录音暂存路径：${res}`;
+          document.getElementById('recordAudioRes').textContent = '录音中...';
         });
       }
 
       function stopRecordAudio() {
         h5packBridge.recordAudio.stop().then(res => {
           console.log('停止录音res', res);
-          document.getElementById(
-            'recordAudioStopRes',
-          ).textContent = `录音完成结果：${JSON.stringify(res)}`;
+          currentRecordPath = res.path;
+          document.getElementById('recordAudioRes').textContent =
+            `录音完成：${res.durationMs}ms\n路径：${res.path}`;
         });
       }
 
       function cancelRecordAudio() {
-        h5packBridge.recordAudio.cancel().then(res => {
-          console.log('取消录音res', res);
+        h5packBridge.recordAudio.cancel().then(() => {
+          currentRecordPath = '';
+          document.getElementById('recordAudioRes').textContent = '录音已取消';
         });
       }
 
       function restartRecordAudio() {
         h5packBridge.recordAudio.restart().then(res => {
           console.log('重新录音res', res);
-          document.getElementById(
-            'recordAudioCancelRes',
-          ).textContent = `重新录音结果：${JSON.stringify(res)}`;
+          document.getElementById('recordAudioRes').textContent = '重新录音中...';
+        });
+      }
+
+      function playRecordAudio() {
+        if (!currentRecordPath) {
+          alert('请先录音');
+          return;
+        }
+        h5packBridge.recordAudio.play(currentRecordPath).then(() => {
+          console.log('播放中', currentRecordPath);
+          document.getElementById('playbackStatus').textContent =
+            '正在播放：' + currentRecordPath;
+        });
+      }
+
+      function stopPlayRecordAudio() {
+        h5packBridge.recordAudio.stopPlay().then(() => {
+          console.log('停止播放');
+          document.getElementById('playbackStatus').textContent = '播放已停止';
         });
       }
 

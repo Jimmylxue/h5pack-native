@@ -29,6 +29,10 @@ export class RecordAudioModule {
         return await this.cancel();
       case 'restart':
         return await this.restart(params);
+      case 'play':
+        return await this.play(params);
+      case 'stopPlay':
+        return await this.stopPlay();
       case 'checkPermission':
         return await this.checkPermission();
       case 'requestPermission':
@@ -154,6 +158,32 @@ export class RecordAudioModule {
       }
     }
     return true;
+  }
+
+  /**
+   * 播放录音文件
+   */
+  async play(params: {path: string}) {
+    try {
+      const {path} = params;
+      if (!path) {
+        throw new Error('path is required');
+      }
+      return await Recording.play(path);
+    } catch (error) {
+      throw this.wrapError(error, 'RECORD_AUDIO_ERROR');
+    }
+  }
+
+  /**
+   * 停止播放
+   */
+  async stopPlay() {
+    try {
+      return await Recording.stopPlay();
+    } catch (error) {
+      throw this.wrapError(error, 'RECORD_AUDIO_ERROR');
+    }
   }
 
   /**
