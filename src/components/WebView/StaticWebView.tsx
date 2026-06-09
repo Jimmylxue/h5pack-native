@@ -6,6 +6,8 @@ import RNFS from 'react-native-fs';
 import Config from 'react-native-config';
 // 使用 react-native-config 来获取环境变量
 
+const startTime = Date.now();
+
 export function StaticWebView({
   url,
   baseUrl = '/',
@@ -76,10 +78,6 @@ export function StaticWebView({
   }, []);
 
   useEffect(() => {
-    const rewriteToRelative = (s: string) =>
-      s
-        .replace(/(src|href)=["']\/(assets\/[^"']+)["']/g, '$1="$2"')
-        .replace(/url\(["']?\/(assets\/[^"')]+)["']?\)/g, 'url("$1")');
     const load = async () => {
       try {
         const devEnabled =
@@ -88,8 +86,9 @@ export function StaticWebView({
           setHtml(null);
           return;
         }
+        // HTML 路径已在构建时预处理，运行时直接加载
         const content = await RNFS.readFileAssets(`webview/${entry}`, 'utf8');
-        setHtml(rewriteToRelative(content));
+        setHtml(content);
       } catch (e) {
         console.log('[StaticWebView] load html error: ', e);
         setHtml(null);
@@ -117,6 +116,9 @@ export function StaticWebView({
       mediaPlaybackRequiresUserAction={false}
       onLoadEnd={() => {
         nativeBridge.current = new H5PackNativeBridge(webViewRef.current!);
+        const elapsed = Date.now() - startTime;
+        console.log(`[h5pack] WebView (dev) loaded in ${elapsed}ms`);
+        DeviceEventEmitter.emit('WEBVIEW_READY');
       }}
       onMessage={event => {
         nativeBridge.current?.handleMessage(event);
@@ -145,6 +147,9 @@ export function StaticWebView({
         mediaPlaybackRequiresUserAction={false}
         onLoadEnd={() => {
           nativeBridge.current = new H5PackNativeBridge(webViewRef.current!);
+          const elapsed = Date.now() - startTime;
+          console.log(`[h5pack] WebView (static) loaded in ${elapsed}ms`);
+          DeviceEventEmitter.emit('WEBVIEW_READY');
         }}
         onMessage={event => {
           nativeBridge.current?.handleMessage(event);

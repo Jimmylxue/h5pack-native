@@ -6,7 +6,7 @@
  */
 
 import React, {useEffect} from 'react';
-import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
+import {DeviceEventEmitter, SafeAreaView, StatusBar, useColorScheme} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import BootSplash from 'react-native-bootsplash';
@@ -23,7 +23,20 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    BootSplash.hide();
+    // 等 WebView 首屏加载完成后再隐藏 BootSplash
+    const sub = DeviceEventEmitter.addListener('WEBVIEW_READY', () => {
+      BootSplash.hide();
+    });
+
+    // 超时兜底：最多等 5 秒，防止 WebView 异常时 BootSplash 永远不消失
+    const timer = setTimeout(() => {
+      BootSplash.hide();
+    }, 5000);
+
+    return () => {
+      sub.remove();
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
