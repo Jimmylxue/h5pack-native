@@ -1,4 +1,5 @@
 import {PermissionsAndroid, Platform} from 'react-native';
+import Config from 'react-native-config';
 import {H5PackNativeBridge} from '..';
 import {
   CameraOptions,
@@ -224,7 +225,14 @@ export class CameraModule {
    */
   async scan() {
     try {
-      // // 检查权限
+      const scanEnabled =
+        String(Config.APP_SCAN_ENABLED || '').toLowerCase() === 'true';
+      if (!scanEnabled) {
+        throw this.wrapError(
+          new Error('扫码功能未启用，请在 h5pack.json 中设置 scanEnabled: true'),
+          'SCAN_NOT_ENABLED',
+        );
+      }
       await this.ensureCameraPermission();
       return new Promise(async resolve => {
         navigates('Scan', {

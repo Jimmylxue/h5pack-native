@@ -141,7 +141,14 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
-    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+    // 扫码能力：通过 APP_SCAN_ENABLED 开关控制，默认关闭以减小包体
+    def scanEnabled = project.env.get("APP_SCAN_ENABLED", "false").toLowerCase() == "true"
+    if (scanEnabled) {
+        implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+        println "✅ 扫码功能已启用 (APP_SCAN_ENABLED=true)，引入 MLKit barcode-scanning"
+    } else {
+        println "⏭️  扫码功能未启用 (APP_SCAN_ENABLED=false)，跳过 MLKit 以减小包体"
+    }
 
     implementation project(':react-native-config')
 
