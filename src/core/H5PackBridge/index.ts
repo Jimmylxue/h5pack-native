@@ -3,6 +3,7 @@ import {CameraModule} from './modules/Camera';
 import {LocationModule} from './modules/Location';
 import {RecordAudioModule} from './modules/RecordAudio';
 import {AppModule} from './modules/App';
+import {logRequest, logSuccess, logError} from './logger';
 
 export class H5PackNativeBridge {
   handlers: Record<string, any> = {};
@@ -39,19 +40,22 @@ export class H5PackNativeBridge {
       if (data?.type === 'bridge_call') {
         const {module, action, params, callId} = data;
 
+        logRequest(module, action, params, callId);
+
         if (!this.handlers[module]) {
           throw new Error(`Module not found: ${module}`);
         }
         try {
           const result = await this.handlers[module]?.(action, params);
+          logSuccess(callId, result);
           this.sendSuccess(callId, result);
         } catch (error) {
+          logError(callId, error);
           this.sendError(callId, error);
         }
       }
     } catch (error) {
       console.error('Failed to handle message:', error);
-      // 发送解析错误响应
       this.sendError('parse_error', 'Failed to parse message', 'PARSE_ERROR');
     }
   };

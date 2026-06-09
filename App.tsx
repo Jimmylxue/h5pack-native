@@ -7,12 +7,18 @@
 
 import React, {useEffect} from 'react';
 import {DeviceEventEmitter, SafeAreaView, StatusBar, useColorScheme} from 'react-native';
+import Config from 'react-native-config';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import BootSplash from 'react-native-bootsplash';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {NavigationContainer as RNNavigationContainer} from '@react-navigation/native';
 import {navigationRef} from './src/navigation/navigate';
+import {BridgeDebugPanel} from './src/components/BridgeDebugPanel';
+import {setBridgeLogEnabled} from './src/core/H5PackBridge/logger';
+
+const devMode =
+  String(Config.APP_WEBVIEW_DEV_ENABLED || '').toLowerCase() === 'true';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -23,6 +29,11 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
+    // 开发环境自动启用 Bridge 日志
+    if (devMode) {
+      setBridgeLogEnabled(true);
+    }
+
     // 等 WebView 首屏加载完成后再隐藏 BootSplash
     const sub = DeviceEventEmitter.addListener('WEBVIEW_READY', () => {
       BootSplash.hide();
@@ -48,6 +59,7 @@ function App(): React.JSX.Element {
       <RNNavigationContainer ref={navigationRef}>
         <RootNavigator />
       </RNNavigationContainer>
+      {devMode && <BridgeDebugPanel />}
     </SafeAreaView>
   );
 }
