@@ -3,9 +3,6 @@ import * as React from 'react';
 
 export type TRootStackParams = {
   Main: undefined;
-  Camera: {
-    onSuccess: (res: string) => void;
-  };
   Scan: {
     onSuccess: (res: string) => void;
   };
