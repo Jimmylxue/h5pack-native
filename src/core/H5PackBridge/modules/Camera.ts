@@ -39,12 +39,13 @@ export class CameraModule {
   async open(options: CameraOptions) {
     try {
       await this.ensureCameraPermission();
-      return new Promise(async resolve => {
-        const result = await launchCamera(options);
-        const filePath = result?.assets?.[0]?.uri!;
-        const base64 = await this.filePathToBase64(filePath);
-        resolve({...result?.assets?.[0], base64});
-      });
+      const result = await launchCamera(options);
+      const asset = result?.assets?.[0];
+      if (!asset?.uri) {
+        throw new Error('拍照失败：未获取到图片');
+      }
+      const base64 = await this.filePathToBase64(asset.uri);
+      return {...asset, base64};
     } catch (error) {
       throw this.wrapError(error, 'CAMERA_ERROR');
     }
@@ -233,19 +234,16 @@ export class CameraModule {
   private async processImage(image: any, params: any) {
     const {uri, fileName, fileSize, width, height, base64} = image;
 
-    let accessibleUri = uri;
-
-    // 构建返回结果
     const result: any = {
-      uri: accessibleUri,
+      uri,
       width,
       height,
       fileSize,
       fileName: fileName || 'image.jpg',
-      base64: await this.filePathToBase64(accessibleUri),
+      base64: await this.filePathToBase64(uri),
     };
 
-    // 如果需要 base64
+    // 如果 picker 已返回 base64，直接使用（避免重复读取文件）
     if (params?.includeBase64 && base64) {
       result.base64 = `data:image/jpeg;base64,${base64}`;
     }
@@ -253,9 +251,19 @@ export class CameraModule {
     return result;
   }
 
+  /**
+   * 将文件路径或 content URI 读取为 base64 data URL。
+   * RNFS.readFile 原生端通过 ContentResolver 支持 content:// URI，
+   * 因此无需额外转换。
+   */
   private async filePathToBase64(filePath: string) {
-    const base64String = await RNFS.readFile(filePath, 'base64');
-    const base64Url = `data:image/jpeg;base64,${base64String}`;
-    return base64Url;
+    try {
+      const base64String = await RNFS.readFile(filePath, 'base64');
+      return `data:image/jpeg;base64,${base64String}`;
+    } catch (error: any) {
+      throw new Error(
+        `读取图片失败 (uri: ${filePath}): ${error?.message || error}`,
+      );
+    }
   }
 }

@@ -4,10 +4,16 @@
 
     <!-- 相机权限 -->
     <uses-permission android:name="android.permission.CAMERA" />
-    
-    <!-- 如果需要保存照片到相册，还需要以下权限 -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- 存储权限：按 Android 版本分级声明（与 core/permission/const.ts 保持一致） -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Android 13+ (API 33) 细粒度媒体权限，替代 READ_EXTERNAL_STORAGE -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <!-- 定位 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -15,6 +21,6 @@
 
     <application
         android:usesCleartextTraffic="true"
-        tools:targetApi="28"
+        tools:targetApi="34"
         tools:ignore="GoogleAppIndexingWarning"/>
 </manifest>
