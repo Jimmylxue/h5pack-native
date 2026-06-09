@@ -41,7 +41,8 @@
 -dontwarn com.google.android.gms.**
 
 # ---------- react-native-config ----------
--keep class com.lugg.ReactNativeConfig.** { *; }
+-keep class com.lugg.RNCConfig.** { *; }
+-keep class com.h5packnative.BuildConfig { *; }
 
 # ---------- react-native-fs ----------
 -keep class com.rnfs.** { *; }
